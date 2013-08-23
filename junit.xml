@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuite errors="1" failures="0" name="" skips="0" tests="0" time="0.101"><testcase classname="" name="tests.test_adminAPI" time="0"><failure message="collection failure">/Library/Python/2.7/site-packages/py-1.4.13-py2.7.egg/py/_path/local.py:548: in pyimport
-&gt;           __import__(modname)
-/Library/Python/2.7/site-packages/pytest-2.3.4-py2.7.egg/_pytest/assertion/rewrite.py:157: in load_module
-&gt;           py.builtin.exec_(co, mod.__dict__)
-/Users/bdossant/Documents/CERN/Vidyo/QA/Scripts/vidyo_api/tests/test_adminAPI.py:4: in &lt;module&gt;
-&gt;   ???
-E   ImportError: No module named vidyo_api.api</failure></testcase></testsuite>

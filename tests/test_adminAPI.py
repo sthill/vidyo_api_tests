@@ -1,8 +1,8 @@
 import logging as app_logger
 import pytest
 
-from vidyo_api.api import AdminApi
-from vidyo_api import conf
+from vidyo_api_tests.api import AdminApi
+from vidyo_api_tests import conf
 
 @pytest.fixture(scope="module")
 def member(request):

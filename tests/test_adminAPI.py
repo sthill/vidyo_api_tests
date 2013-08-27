@@ -8,7 +8,7 @@ from vidyo_api_tests import conf
 #### MEMBER TESTS ####
 ######################
 
-@pytest.fixture(scope="function", params=["1", "2"]) 
+'''@pytest.fixture(scope="function", params=["1", "2"]) 
 def member(request):
     member = {
         'username' : 'test' + request.param,
@@ -17,6 +17,29 @@ def member(request):
         'proxyName' : 'No Proxy',
         'groupName' : 'Default',
         'email' : 'test' + request.param  + '@cern.ch',
+        'locationTag' : 'Default'
+    }
+    response = AdminApi(app_logger).InsertMember(member)
+    def fin():
+        print ("finalizing %s" % member)
+        filters = {'query': member['username']}
+        results = AdminApi(app_logger).GetMembers(filters)
+        if 'total' in results and int(results['total']) > 0 and 'member' in results and results['member'] > 0:
+            m = results['member'][0]
+            memberID = m['memberID']
+            response = AdminApi(app_logger).DeleteMember(memberID)
+    request.addfinalizer(fin)
+    return member'''
+
+@pytest.fixture(scope="function") 
+def member(request):
+    member = {
+        'username' : 'test1',
+        'displayName' : 'Test 1',
+        'employeeID' : '11001',
+        'proxyName' : 'No Proxy',
+        'groupName' : 'Default',
+        'email' : 'test1@cern.ch',
         'locationTag' : 'Default'
     }
     response = AdminApi(app_logger).InsertMember(member)
@@ -93,10 +116,31 @@ def test_addMember():
 #### ROOM TESTS ####
 ######################
     
-@pytest.fixture(scope="function", params=["1","2"])
+'''@pytest.fixture(scope="function", params=["1","2"])
 def room(request, member):
     room = {
         'name' : 'room' + request.param,
+        'RoomType' : 'Public',
+        'ownerName' : member['username'],
+        'groupName' : 'Default',
+        'extension' : '50000'
+    }
+    response = AdminApi(app_logger).AddRoom(room)
+    def fin():
+        print ("finalizing %s" % room)
+        filters = {'query': room['name']}
+        results = AdminApi(app_logger).GetRooms(filters)
+        if 'total' in results and int(results['total']) > 0 and 'room' in results and results['room'] > 0:
+            r = results['room'][0]
+            roomID = r['roomID']
+            response = AdminApi(app_logger).DeleteRoom(roomID)
+    request.addfinalizer(fin)
+    return room'''
+
+@pytest.fixture(scope="function")
+def room(request, member):
+    room = {
+        'name' : 'room1',
         'RoomType' : 'Public',
         'ownerName' : member['username'],
         'groupName' : 'Default',

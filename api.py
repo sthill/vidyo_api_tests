@@ -65,7 +65,6 @@ class SOAPObjectFactory():
     def createMember(self, member):
         vidyoClient = AdminClient.getInstance()
         newMember = vidyoClient.factory.create('Member')
-        #newMember.memberID = member.memberID
         newMember.name = member['username']
         newMember.password = "Use your CERN credentials"
         newMember.displayName = member['displayName']
@@ -81,6 +80,15 @@ class SOAPObjectFactory():
         newMember.locationTag = member['locationTag']
         return newMember
 
+    def createRoom(self, room):
+        vidyoClient = AdminClient.getInstance()
+        newRoom = vidyoClient.factory.create('Room')
+        newRoom.name = room['name']
+        newRoom.RoomType = room['RoomType']
+        newRoom.ownerName = room['ownerName']
+        newRoom.groupName = room['groupName']
+        newRoom.extension = room['extension']
+        return newRoom
 
 class ApiBase():
     """
@@ -202,17 +210,6 @@ class AdminApi(ApiBase):
                 response = vidyoClient.service.addMember(newMember)
             self.app_logger.debug("Response: %s" % str(response))
 
-            '''email_body = """Dear %s,\n please note that your registration to the CERN Vidyo service is now active.\n
-You can start using the service at https://vidyoportal.cern.ch where you login with your CERN account.\n
-General service information can be found here: http://cern.ch/vidyo/\n\n
-Best regards,\n
-CERN Vidyo Service""" % newMember.displayName
-            email_subject = "Vidyo registration completed"
-            email_to = [newMember.emailAddress]
-
-            m = VidyoMail(email_to, email_subject, email_body)
-            m.send()'''
-
             return response
         except Exception as err:
             self.app_logger.error("Error while using API InsertMember: %s" % err)
@@ -241,4 +238,128 @@ CERN Vidyo Service""" % newMember.displayName
             return response
         except Exception as err:
             self.app_logger.error("Error while using API DeleteMember: %s" % err)
+            return None
+    
+    def AddRoom(self, new_room):
+        """
+            Use the API to insert a new room in Vidyo DB
+        """
+        self.app_logger.info("opening connection to Vidyo API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        newRoom = SOAPObjectFactory().createRoom(new_room)
+        self.app_logger.debug("calling Admin API's addRoom operation with room data: %s" % newRoom)
+        try:
+            if conf.VIDYO_API_DRY_RUN:
+                response = "API ADDROOM:\n%s" % newRoom
+            else:
+                response = vidyoClient.service.addRoom(newRoom)
+            self.app_logger.debug("Response: %s" % str(response))
+
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API AddRoom: %s" % err)
+            return None
+
+    def GetRooms(self, filters=None):
+        """
+            Use the API to retreive all the rooms in Vidyo DB
+        """
+
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling Admin API's GetRooms operation")
+        try:
+            response = vidyoClient.service.getRooms(filters)
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API GetRooms: %s" % err)
+            return None
+
+    def GetRoom(self, roomID=None):
+        """
+            Use the API to retreive a room in Vidyo DB
+        """
+
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling Admin API's GetRoom operation")
+        try:
+            response = vidyoClient.service.getRoom(roomID)
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API GetRoom: %s" % err)
+            return None
+
+
+    '''def UpdateMember(self, changed_member):
+        """
+            Use the API to update one specific member changed using its ID
+        """
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        memberChanged = SOAPObjectFactory().createMember(changed_member)
+        memberId = changed_member['memberID']
+        self.app_logger.debug("calling Admin API's UpdateMember operation with member id: %s and member data: %s" % (memberId, changed_member))
+        try:
+            if conf.VIDYO_API_DRY_RUN:
+                response = "API UPDATE:\n%s" % memberChanged
+            else:
+                response = vidyoClient.service.updateMember(memberId, memberChanged)
+            self.app_logger.debug("Response: %s" % str(response))
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API UpdateMember: %s" % err)
+            return None'''
+
+    def DeleteRoom(self, roomId):
+        """
+            Use the API to delete one speficic room
+        """
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling Admin API's DeleteRoom operation with room id: %s" % roomId)
+        try:
+            if conf.VIDYO_API_DRY_RUN:
+                response = "API DELETE FOR: %s" % roomId
+            else:
+                response = vidyoClient.service.deleteRoom(roomId)
+            self.app_logger.debug("Response: %s" % str(response))
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API DeleteRoom: %s" % err)
             return None

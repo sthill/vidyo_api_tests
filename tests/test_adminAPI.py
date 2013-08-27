@@ -8,15 +8,15 @@ from vidyo_api_tests import conf
 #### MEMBER TESTS ####
 ######################
 
-@pytest.fixture(scope="function") 
+@pytest.fixture(scope="function", params=["1", "2"]) 
 def member(request):
     member = {
-        'username' : 'test1',
-        'displayName' : 'Test 1',
-        'employeeID' : '11001',
+        'username' : 'test' + request.param,
+        'displayName' : 'Test ' + request.param,
+        'employeeID' : '1100' + request.param,
         'proxyName' : 'No Proxy',
         'groupName' : 'Default',
-        'email' : 'test1@cern.ch',
+        'email' : 'test' + request.param  + '@cern.ch',
         'locationTag' : 'Default'
     }
     response = AdminApi(app_logger).InsertMember(member)
@@ -93,12 +93,12 @@ def test_addMember():
 #### ROOM TESTS ####
 ######################
     
-@pytest.fixture(scope="function")
-def room(request):
+@pytest.fixture(scope="function", params=["1","2"])
+def room(request, member):
     room = {
-        'name' : 'room1',
+        'name' : 'room' + request.param,
         'RoomType' : 'Public',
-        'ownerName' : 'test1',
+        'ownerName' : member['username'],
         'groupName' : 'Default',
         'extension' : '50000'
     }
@@ -112,9 +112,9 @@ def room(request):
             roomID = r['roomID']
             response = AdminApi(app_logger).DeleteRoom(roomID)
     request.addfinalizer(fin)
-    return room 
+    return room
 
-def test_deleteRoom(member, room):
+def test_deleteRoom(room):
     filters = {'query': room['name']}
     results = AdminApi(app_logger).GetRooms(filters)
     r = results['room'][0]
@@ -122,12 +122,12 @@ def test_deleteRoom(member, room):
     response = AdminApi(app_logger).DeleteRoom(roomID)
     assert 'OK' in response
 
-def test_getRooms(member, room):
+def test_getRooms(room):
     filters = {'query': room['name']}
     results = AdminApi(app_logger).GetRooms(filters)
     assert results['total'] == 1
 
-def test_getRoom(member, room):
+def test_getRoom(room):
     filters = {'query': room['name']}
     results = AdminApi(app_logger).GetRooms(filters)
     r = results['room'][0]
@@ -139,7 +139,7 @@ def test_addRoom(member):
     room = {
         'name' : 'room1',
         'RoomType' : 'Public',
-        'ownerName' : 'test1',
+        'ownerName' : member['username'],
         'groupName' : 'Default',
         'extension' : '50000'
     }
@@ -153,21 +153,20 @@ def test_addRoom(member):
     assert 'OK' in response
 
 
-'''def test_updateMember(member):
-    filters = {'query': member['username']}
-    results = AdminApi(app_logger).GetMembers(filters)
-    m = results['member'][0]
-    memberID = m['memberID']
-    vidyo_member_update = {
-        'memberID': memberID,
-        'username': member['username'],
-        'displayName': member['displayName'],
-        'employeeID': member['employeeID'],
-        'groupName': member['groupName'],
-        'locationTag': member['locationTag'],
-        'email': member['email']
+def test_updateRoom(room):
+    filters = {'query': room['name']}
+    results = AdminApi(app_logger).GetRooms(filters)
+    r = results['room'][0]
+    roomID = r['roomID']
+    vidyo_room_update = {
+        'roomID': roomID,
+        'name': room['name'],
+        'RoomType' : room['RoomType'],
+        'ownerName' : room['ownerName'],
+        'groupName' : room['groupName'],
+        'extension' : room['extension']
     }
-    response = AdminApi(app_logger).UpdateMember(vidyo_member_update) 
-    assert 'OK' in response'''
+    response = AdminApi(app_logger).UpdateRoom(vidyo_room_update) 
+    assert 'OK' in response
 
 

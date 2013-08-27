@@ -2,8 +2,6 @@ import datetime
 import suds
 
 import conf
-#from sync_vidyo_ldap.mail_handler import VidyoMail
-
 
 class ClientBase():
     """
@@ -312,9 +310,9 @@ class AdminApi(ApiBase):
             return None
 
 
-    '''def UpdateMember(self, changed_member):
+    def UpdateRoom(self, changed_room):
         """
-            Use the API to update one specific member changed using its ID
+            Use the API to update one specific room changed using its ID
         """
         self.app_logger.info("opening connection to Vidyo Admin API")
         try:
@@ -325,19 +323,19 @@ class AdminApi(ApiBase):
             self.app_logger.error("Error while using API: %s" % err)
             return None
 
-        memberChanged = SOAPObjectFactory().createMember(changed_member)
-        memberId = changed_member['memberID']
-        self.app_logger.debug("calling Admin API's UpdateMember operation with member id: %s and member data: %s" % (memberId, changed_member))
+        roomChanged = SOAPObjectFactory().createRoom(changed_room)
+        roomId = changed_room['roomID']
+        self.app_logger.debug("calling Admin API's UpdateRoom operation with room id: %s and room data: %s" % (roomId, changed_room))
         try:
             if conf.VIDYO_API_DRY_RUN:
-                response = "API UPDATE:\n%s" % memberChanged
+                response = "API UPDATE:\n%s" % roomChanged
             else:
-                response = vidyoClient.service.updateMember(memberId, memberChanged)
+                response = vidyoClient.service.updateRoom(roomId, roomChanged)
             self.app_logger.debug("Response: %s" % str(response))
             return response
         except Exception as err:
-            self.app_logger.error("Error while using API UpdateMember: %s" % err)
-            return None'''
+            self.app_logger.error("Error while using API UpdateRoom: %s" % err)
+            return None
 
     def DeleteRoom(self, roomId):
         """

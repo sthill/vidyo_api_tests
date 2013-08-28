@@ -213,4 +213,12 @@ def test_updateRoom(room):
     response = AdminApi(app_logger).UpdateRoom(vidyo_room_update) 
     assert 'OK' in response
 
-
+def test_getParticipants(room):
+    filters = {'query': room['name']}
+    results = AdminApi(app_logger).GetRooms(filters)
+    if 'total' in results and int(results['total']) > 0 and 'room' in results and results['room'] > 0:
+        r = results['room'][0]
+        roomID = r['roomID']
+        response = AdminApi(app_logger).GetParticipants(roomID)
+    assert 'total' in response and int(results['total']) >= 0
+    

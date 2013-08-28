@@ -361,3 +361,25 @@ class AdminApi(ApiBase):
         except Exception as err:
             self.app_logger.error("Error while using API DeleteRoom: %s" % err)
             return None
+
+    def GetParticipants(self, entityID):
+        """
+            Use the API to retreive all the participants in a Vidyo room
+        """
+
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling Admin API's GetParticipants operation")
+        try:
+            response = vidyoClient.service.getParticipants(entityID)
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API GetParticipants: %s" % err)
+            return None

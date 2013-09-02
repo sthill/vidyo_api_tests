@@ -51,6 +51,36 @@ class AdminClient(ClientBase):
 
         return cls._instance
 
+class UserClient(ClientBase):
+    """
+        Singleton for the client for Vidyo's user API.
+        We need to build a suds.client.Client with a transport argument (and not directly with username and password
+        arguments) because Vidyo only supports preemptive http authentication for performance reasons.
+        Suds supports this by first constructing an HttpAuthenticated transport and then passing it to the Client.
+    """
+    _instance = None
+
+    @classmethod
+    def getInstance(cls, userAPIUrl=None, username=None, password=None):
+
+        if cls._instance is None or (userAPIUrl is not None or username is not None or password is not None):
+
+            if userAPIUrl is None:
+                userAPIUrl = conf.USER_API_WSDL_URL
+            if username is None:
+                username = conf.USER_API_USERNAME
+            if password is None:
+                password = conf.USER_API_PSW
+
+            location = conf.USER_API_LOCATION
+
+            try:
+                cls._instance = suds.client.Client(userAPIUrl, transport=ClientBase.getTransport(userAPIUrl, username, password), location=location)
+            except Exception as err:
+                raise Exception(err)
+
+        return cls._instance
+
 
 class SOAPObjectFactory():
     """
@@ -64,7 +94,7 @@ class SOAPObjectFactory():
         vidyoClient = AdminClient.getInstance()
         newMember = vidyoClient.factory.create('Member')
         newMember.name = member['username']
-        newMember.password = "Use your CERN credentials"
+        newMember.password = member['username']
         newMember.displayName = member['displayName']
         newMember.extension = member['employeeID']
         newMember.Language = "en"
@@ -101,6 +131,40 @@ class ApiBase():
         else:
             raise
 
+class UserApi(ApiBase):
+    """
+        This class performs low-level operations by getting the corresponding
+        client and calling a SOAP service.
+        We write info statements to the log with the details of what we are doing.
+        Each class method performs a single service call to Vidyo.
+    """
+
+    app_logger = None
+
+    def __init__(self, app_logger):
+        self.app_logger = app_logger
+
+    def Search(self, filters=None):
+        """
+            Use the API to search a member in Vidyo DB
+        """
+
+        self.app_logger.info("opening connection to Vidyo User API")
+        try:
+            vidyoClient = UserClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling User API's Search operation")
+        try:
+            response = vidyoClient.service.search(filters)
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API Search: %s" % err)
+            return None
 
 class AdminApi(ApiBase):
     """
@@ -382,4 +446,48 @@ class AdminApi(ApiBase):
             return response
         except Exception as err:
             self.app_logger.error("Error while using API GetParticipants: %s" % err)
+            return None
+
+    def InviteToConference(self, conferenceID, entityID):
+        """
+            Use the API to invite a participant to a Vidyo room
+        """
+
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling Admin API's InviteToConference operation")
+        try:
+            response = vidyoClient.service.inviteToConference(conferenceID, entityID)
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API InviteToConference: %s" % err)
+            return None
+
+    def LeaveConference(self, conferenceID, participantID):
+        """
+            Use the API to disconnect a participant from a Vidyo room
+        """
+
+        self.app_logger.info("opening connection to Vidyo Admin API")
+        try:
+            vidyoClient = AdminClient().getInstance()
+            if not vidyoClient:
+                return None
+        except Exception as err:
+            self.app_logger.error("Error while using API: %s" % err)
+            return None
+
+        self.app_logger.debug("calling Admin API's LeaveConference operation")
+        try:
+            response = vidyoClient.service.leaveConference(conferenceID, participantID)
+            return response
+        except Exception as err:
+            self.app_logger.error("Error while using API LeaveConference: %s" % err)
             return None

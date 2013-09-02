@@ -1,7 +1,7 @@
 import logging as app_logger
 import pytest
 
-from vidyo_api_tests.api import AdminApi
+from vidyo_api_tests.api import AdminApi, UserApi
 from vidyo_api_tests import conf
 
 ######################
@@ -214,11 +214,79 @@ def test_updateRoom(room):
     assert 'OK' in response
 
 def test_getParticipants(room):
+    response = ''
     filters = {'query': room['name']}
     results = AdminApi(app_logger).GetRooms(filters)
     if 'total' in results and int(results['total']) > 0 and 'room' in results and results['room'] > 0:
-        r = results['room'][0]
-        roomID = r['roomID']
-        response = AdminApi(app_logger).GetParticipants(roomID)
+        for result in results['room']:
+            if result['name'] == room['name']:
+                roomID = result['roomID']
+                response = AdminApi(app_logger).GetParticipants(roomID)
     assert 'total' in response and int(results['total']) >= 0
+    
+# Timeout to prevent that the test gets stuck in while loop if something goes wrong
+@pytest.mark.timeout(30)
+def test_inviteToConference(room):
+    response = ''
+    memberName = 'ROOM_CERN_513-1-005'
+    roomName = room['name']
+    filters = {'query': roomName}
+    results = AdminApi(app_logger).GetRooms(filters)
+    if 'total' in results and int(results['total']) > 0 and 'room' in results and results['room'] > 0:
+        for result in results['room']:
+            if result['name'] == room['name']:
+                roomID = result['roomID']
+        filters = {'query': memberName}
+        results = UserApi(app_logger).Search(filters)
+        if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
+            for result in results['Entity']:
+                if result['displayName'] == memberName:
+                    entityID = result['entityID']
+                    response = AdminApi(app_logger).InviteToConference(roomID, entityID)
+
+                    # Cleaning
+                    found = False 
+                    while not found:
+                        results = AdminApi(app_logger).GetParticipants(roomID)
+                        if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
+                            found = True
+                            for result in results['Entity']:
+                                if result['displayName'] == memberName:
+                                    participantID = result['participantID']
+                            AdminApi(app_logger).LeaveConference(roomID, participantID)
+    assert 'OK' in response
+
+# Timeout to prevent that the test gets stuck in while loop if something goes wrong
+@pytest.mark.timeout(30)
+def test_leaveConference(room):
+    # Setup conference
+    response = ''
+    memberName = 'ROOM_CERN_513-1-005'
+    roomName = room['name']
+    filters = {'query': roomName}
+    results = AdminApi(app_logger).GetRooms(filters)
+    if 'total' in results and int(results['total']) > 0 and 'room' in results and results['room'] > 0:
+        for result in results['room']:
+            if result['name'] == room['name']:
+                roomID = result['roomID']
+        filters = {'query': memberName}
+        results = UserApi(app_logger).Search(filters)
+        if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
+            for result in results['Entity']:
+                if result['displayName'] == memberName:
+                    entityID = result['entityID']
+                    response = AdminApi(app_logger).InviteToConference(roomID, entityID)
+
+                    # Actual test
+                    found = False 
+                    while not found:
+                        results = AdminApi(app_logger).GetParticipants(roomID)
+                        if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
+                            found = True
+                            for result in results['Entity']:
+                                if result['displayName'] == memberName:
+                                    participantID = result['participantID']
+                            response = AdminApi(app_logger).LeaveConference(roomID, participantID)
+    assert 'OK' in response
+
     

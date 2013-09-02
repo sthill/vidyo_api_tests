@@ -225,7 +225,7 @@ def test_getParticipants(room):
     assert 'total' in response and int(results['total']) >= 0
     
 # Timeout to prevent that the test gets stuck in while loop if something goes wrong
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(10)
 def test_inviteToConference(room):
     response = ''
     memberName = 'ROOM_CERN_513-1-005'
@@ -260,7 +260,7 @@ def test_inviteToConference(room):
     assert 'OK' in response
 
 # Timeout to prevent that the test gets stuck in while loop if something goes wrong
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(10)
 def test_leaveConference(room):
     # Setup conference
     response = ''

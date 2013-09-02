@@ -247,13 +247,16 @@ def test_inviteToConference(room):
                     # Cleaning
                     found = False 
                     while not found:
-                        results = AdminApi(app_logger).GetParticipants(roomID)
-                        if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
-                            found = True
-                            for result in results['Entity']:
-                                if result['displayName'] == memberName:
-                                    participantID = result['participantID']
-                            AdminApi(app_logger).LeaveConference(roomID, participantID)
+                        try:
+                            results = AdminApi(app_logger).GetParticipants(roomID)
+                            if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
+                                found = True
+                                for result in results['Entity']:
+                                    if result['displayName'] == memberName:
+                                        participantID = result['participantID']
+                                AdminApi(app_logger).LeaveConference(roomID, participantID)
+                        except:
+                            pass
     assert 'OK' in response
 
 # Timeout to prevent that the test gets stuck in while loop if something goes wrong
@@ -280,13 +283,16 @@ def test_leaveConference(room):
                     # Actual test
                     found = False 
                     while not found:
-                        results = AdminApi(app_logger).GetParticipants(roomID)
-                        if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
-                            found = True
-                            for result in results['Entity']:
-                                if result['displayName'] == memberName:
-                                    participantID = result['participantID']
-                            response = AdminApi(app_logger).LeaveConference(roomID, participantID)
+                        try:
+                            results = AdminApi(app_logger).GetParticipants(roomID)
+                            if 'total' in results and int(results['total']) > 0 and 'Entity' in results and results['Entity'] > 0:
+                                found = True
+                                for result in results['Entity']:
+                                    if result['displayName'] == memberName:
+                                        participantID = result['participantID']
+                                AdminApi(app_logger).LeaveConference(roomID, participantID)
+                        except:
+                            pass 
     assert 'OK' in response
 
     
